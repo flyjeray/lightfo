@@ -12,7 +12,7 @@ Then, install all required dependencies from reqs.txt
 
 `pip install -r reqs.txt`
 
-You will also need an .env file that describes path to your database
+You will also need an .env file that describes path to your PostgreSQL database
 
 Create it with following data:
 

@@ -6,43 +6,48 @@ import auth_utils
 import models
 
 router = APIRouter(
-    prefix="/auth"
+    prefix="/auth",
+    tags=['Auth']
 )
 
 token_auth_scheme = HTTPBearer()
 
 class UserCreds(BaseModel):
     name: str
-    pw: str
+    password: str
 
-@router.post("/signup", status_code=201, response_model=UserCreds)
+class CurrentUserData(BaseModel):
+    id: int
+    username: str
+
+@router.post("/signup", status_code=201, response_model=UserCreds, summary="Create a new user with a unique username")
 def sign_up(creds: UserCreds, db: db_dependency):
     user = db.query(models.User).where(models.User.username == creds.name).first()
 
     if user:
         raise HTTPException(status_code=403, detail="User with this name already exists")
 
-    hashed_pw = auth_utils.hash_password(creds.pw)
+    hashed_pw = auth_utils.hash_password(creds.password)
     new_user = models.User(username=creds.name, hashed_pw=hashed_pw)
     db.add(new_user)
     db.commit()
 
-    return { "name": new_user.username, "pw": creds.pw }
+    return { "name": new_user.username, "password": creds.password }
 
-@router.post("/signin", response_model=auth_utils.Token)
+@router.post("/signin", response_model=auth_utils.Token, summary="Sign In with existing credentials")
 def sign_in(creds: UserCreds, db: db_dependency):
     user = db.query(models.User).filter(models.User.username == creds.name).first()
 
     if not user:
         raise HTTPException(status_code=401, detail="User not found")
-    elif not auth_utils.verify_password(creds.pw, user.hashed_pw):
+    elif not auth_utils.verify_password(creds.password, user.hashed_pw):
         raise HTTPException(status_code=401, detail="The password is incorrect")
     else:
         access_token = auth_utils.create_access_token(data={"user_id": user.id})
         return { "access_token": access_token, "token_type": "bearer" }
     
-@router.get("/current")
-def get_current(db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
+@router.get("/current", response_model=CurrentUserData, summary="Get id and username of current logged user. This method is just used for testing Auth")
+def get_current_user(db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     data = auth_utils.verify_token_access(
         creds.credentials, 
         HTTPException(
@@ -57,5 +62,5 @@ def get_current(db: db_dependency, creds: HTTPAuthorizationCredentials = Depends
     if user is None:
         raise HTTPException(status_code=401, detail="Your token is valid, but user of passed id is not found")
     else:
-        return user
+        return { "id": user.id, "username": user.username }
     

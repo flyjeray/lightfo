@@ -1,8 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import test, auth
+from routers import auth
 
-app = FastAPI()
+tags_metadata = [
+    {
+        "name": "Auth",
+        "description": "Operations that are related to User Authentication",
+    },
+]
+
+app = FastAPI(
+    title="LightFo API",
+    version="Version? The best you can find.",
+    openapi_tags=tags_metadata
+)
 
 origins = ["*"]
 
@@ -14,5 +25,4 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(test.router)
 app.include_router(auth.router)

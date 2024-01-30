@@ -1,13 +1,19 @@
-from sqlalchemy import Column, Integer, String
+from sqlalchemy import Column, Integer, String, ARRAY, DateTime
+from sqlalchemy.sql import func
 from database import Base
-
-class TestModel(Base):
-    __tablename__ = "test"
-    id = Column(Integer, primary_key=True, index=True)
-    value = Column(String, index=True)
 
 class User(Base):
     __tablename__ = "users"
     id = Column(Integer, primary_key=True, index=True)
     username = Column(String, index=True)
     hashed_pw = Column(String, index=True)
+    posts = Column(ARRAY(Integer), index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+
+class Post(Base):
+    __tablename__ = "posts"
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    text = Column(String, index=True)
+    owner = Column(Integer, index=True)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -28,7 +28,7 @@ def sign_up(creds: UserCreds, db: db_dependency):
         raise HTTPException(status_code=403, detail="User with this name already exists")
 
     hashed_pw = auth_utils.hash_password(creds.password)
-    new_user = models.User(username=creds.name, hashed_pw=hashed_pw)
+    new_user = models.User(username=creds.name, hashed_pw=hashed_pw, posts=[])
     db.add(new_user)
     db.commit()
 
@@ -48,14 +48,7 @@ def sign_in(creds: UserCreds, db: db_dependency):
     
 @router.get("/current", response_model=CurrentUserData, summary="Get id and username of current logged user. This method is just used for testing Auth")
 def get_current_user(db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
-    data = auth_utils.verify_token_access(
-        creds.credentials, 
-        HTTPException(
-            status_code=401,
-            detail="Could not Validate Credentials",
-            headers={"WWW-Authenticate": "Bearer"}
-        )
-    )
+    data = auth_utils.verify_token_access(creds.credentials)
     
     user = db.query(models.User).filter(models.User.id == data.id).first()
 

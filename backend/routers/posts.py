@@ -28,11 +28,14 @@ def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthoriza
     if user is None:
         raise HTTPException(status_code=401, detail="Encountered error when verifying user")
     else:
-        new_post = models.Post(title=data.title, text=data.text, owner=user.id)
+        new_post = models.Post(title=data.title, text=data.text)
         db.add(new_post)
         db.commit()
         db.flush()
-        user.posts = [*user.posts, new_post.id]
+        new_relation = models.UserPostRelation(post_id=new_post.id, user_id=user.id)
+        db.add(new_relation)
+        db.commit()
+        new_post.relation = new_post.id
         db.commit()
 
         return { "id": new_post.id }

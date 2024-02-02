@@ -28,7 +28,7 @@ def sign_up(creds: UserCreds, db: db_dependency):
         raise HTTPException(status_code=403, detail="User with this name already exists")
 
     hashed_pw = auth_utils.hash_password(creds.password)
-    new_user = models.User(username=creds.name, hashed_pw=hashed_pw, posts=[])
+    new_user = models.User(username=creds.name, hashed_pw=hashed_pw)
     db.add(new_user)
     db.commit()
 

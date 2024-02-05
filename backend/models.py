@@ -8,6 +8,7 @@ class User(Base):
     username = Column(String, index=True)
     hashed_pw = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
+    posts = Column(ARRAY(Integer), index=True, server_default="{}")
 
 class Post(Base):
     __tablename__ = "posts"
@@ -15,9 +16,4 @@ class Post(Base):
     title = Column(String, index=True)
     text = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    relation = Column(Integer, ForeignKey('user-post-relations.post_id', ondelete="CASCADE"), index=True)
-
-class UserPostRelation(Base):
-    __tablename__ = "user-post-relations"
-    user_id = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"), index=True)
-    post_id = Column(Integer, ForeignKey(Post.id, ondelete="CASCADE"), index=True, primary_key=True)
+    owner = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"), index=True)

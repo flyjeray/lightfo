@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-import { get, post } from './test';
 import { signin, signup, current } from './auth';
 
 export const axiosInstance = axios.create({
@@ -16,10 +15,6 @@ axiosInstance.interceptors.request.use(config => {
 });
 
 export const API = {
-	test: {
-		get,
-		post
-	},
 	auth: {
 		signin,
 		signup,

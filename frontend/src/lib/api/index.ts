@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { signin, signup, current } from './auth';
+import { signin, signup, signout, current } from './auth';
 
 export const axiosInstance = axios.create({
 	baseURL: import.meta.env.VITE_API_URL
@@ -18,6 +18,7 @@ export const API = {
 	auth: {
 		signin,
 		signup,
+		signout,
 		current
 	}
 };

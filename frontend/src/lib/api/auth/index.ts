@@ -1,15 +1,17 @@
 import { AUTH_TOKEN_LOCALSTORAGE_PATH, axiosInstance } from "..";
+import store from "../../../store/store";
 
 const prefix = '/auth'
 
 type Creds = {
   name: string;
-  pw: string;
+  password: string;
 }
 
-type SignInResponse = {
+type SignResponse = {
   access_token: string, 
   token_type: string,
+  name: string
 }
 
 type GetCurrentResponse = {
@@ -18,16 +20,31 @@ type GetCurrentResponse = {
   hashed_pw: string;
 }
 
-export const signup = (creds: Creds) => axiosInstance.post<Creds>(`${prefix}/signup`, creds);
+export const current = () => axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
+
+export const signup = async (creds: Creds) => {
+  const response = await axiosInstance.post<SignResponse>(`${prefix}/signup`, creds);
+  
+  if (response.status === 200) {
+    window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
+    store.set({ token: response.data.access_token, name: response.data.name })
+  }
+  
+  return response;
+};
 
 export const signin = async (creds: Creds) => {
-  const response = await axiosInstance.post<SignInResponse>(`${prefix}/signin`, creds);
+  const response = await axiosInstance.post<SignResponse>(`${prefix}/signin`, creds);
 
   if (response.status === 200) {
     window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
+    store.set({ token: response.data.access_token, name: response.data.name })
   }
   
   return response;
 }
 
-export const current = () => axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
+export const signout = () => {
+  window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
+  store.set({ token: null, name: null })
+}

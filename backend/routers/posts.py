@@ -35,7 +35,10 @@ def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthoriza
         db.add(new_post)
         db.commit()
         db.flush()
-        user.posts = [*user.posts, new_post.id]
+        if user.posts is not None:
+            user.posts = [*user.posts, new_post.id]
+        else:
+            user.posts = [new_post.id]
         db.commit()
 
         return { "id": new_post.id }
@@ -51,8 +54,12 @@ def delete_post(id: int, db: db_dependency, creds: HTTPAuthorizationCredentials 
     elif str(post.owner) != token_data.id:
         raise HTTPException(status_code=401, detail="You have no access to modify this post")
     else:
+        owner = db.query(models.User).where(models.User.id == post.owner).first()
+        if owner and owner.posts is not None and post.id in owner.posts:
+            owner.posts = [p_id for p_id in owner.posts if p_id != post.id]
         db.delete(post)
         db.commit()
+        
 
     return { "message": "success" }
 

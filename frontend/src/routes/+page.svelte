@@ -1,12 +1,19 @@
+<script>
+	import Auth from '../components/Header/Auth/index.svelte';
+</script>
+
 <section>
-	<h1 class="text-3xl font-bold underline">LightFo</h1>
+	<Auth />
 </section>
 
 <style lang="postcss">
 	:global(html) {
-		background-color: theme(colors.blue.900);
+		background-color: theme(colors.blue.100);
 	}
 	:global(p, h1, button) {
-		color: white;
+		color: black;
+	}
+	:global(button) {
+		background-color: theme(colors.white);
 	}
 </style>

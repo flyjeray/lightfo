@@ -1,7 +1,7 @@
 <script>
 	import '../app.css';
-	import store from '../store/store';
-	import Header from '../components/Header/index.svelte';
+	import store from '$lib/store/store';
+	import Header from '$lib/components/Header/index.svelte'
 	import { onMount } from 'svelte';
 	import { API, AUTH_TOKEN_LOCALSTORAGE_PATH } from '$lib/api';
 

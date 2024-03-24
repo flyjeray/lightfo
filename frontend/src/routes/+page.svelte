@@ -2,8 +2,8 @@
   import { API } from '$lib/api'
 	import { onMount } from 'svelte';
 
-  import type { Post } from '../models/Post';
-	import type { Pagination } from '../models/Pagination';
+  import type { Post } from '$lib/models/Post';
+	import type { Pagination } from '$lib/models/Pagination';
 
   let page = 1;
   let posts: Post[] = [];

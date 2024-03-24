@@ -1,6 +1,6 @@
 import { axiosInstance } from "..";
-import type { Pagination } from "../../../models/Pagination";
-import type { Post } from "../../../models/Post";
+import type { Pagination } from "$lib/models/Pagination";
+import type { Post } from "$lib/models/Post";
 
 const prefix = '/posts';
 

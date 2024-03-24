@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ARRAY, DateTime, ForeignKey
 from sqlalchemy.sql import func
+from pydantic import BaseModel
 from database import Base
 
 class User(Base):
@@ -17,3 +18,8 @@ class Post(Base):
     text = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"), index=True)
+    
+class Pagination(BaseModel):
+    is_last: bool
+    total_entries: int
+    total_pages: int

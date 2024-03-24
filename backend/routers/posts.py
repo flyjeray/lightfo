@@ -1,7 +1,10 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
+from typing import List
 from database import db_dependency
+from sqlalchemy import func
+from datetime import datetime
 import models
 import auth_utils
 
@@ -21,6 +24,17 @@ class CreatePostResponse(BaseModel):
 
 class MessageResponse(BaseModel):
     message: str
+
+class Post(BaseModel):
+    id: int
+    title: str
+    text: str
+    created_at: datetime
+    owner: int
+
+class GetPostsResponse(BaseModel):
+    posts: List[Post]
+    pagination: models.Pagination
 
 @router.post('/create', status_code=201, response_model=CreatePostResponse, summary="Create a new post")
 def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
@@ -62,4 +76,22 @@ def delete_post(id: int, db: db_dependency, creds: HTTPAuthorizationCredentials 
         
 
     return { "message": "success" }
+
+@router.get('/', status_code=200, response_model=GetPostsResponse, summary="Get posts for main page")
+def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
+    total_posts = db.query(func.count(models.Post.id)).scalar()
+    total_pages = (total_posts + per_page - 1) // per_page
+    offset = (page - 1) * per_page
+    posts = db.query(models.Post).offset(offset).limit(per_page).all()
+
+    return { 
+        "posts": posts,
+        "pagination": {
+            "is_last": page == total_pages,
+            "total_pages": total_pages,
+            "total_entries": total_posts,
+        }
+    }
+
+
 

@@ -25,6 +25,9 @@ export const current = async () => {
 
   if (response.status === 200) {
     store.set({ token: response.data.access_token, name: response.data.username })
+  } else {
+    window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
+    store.set({ token: null, name: null })
   }
 };
 

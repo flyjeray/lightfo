@@ -3,7 +3,7 @@ from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
 from passlib.context import CryptContext
 from jose import JWTError, jwt
-from datetime import timedelta, datetime
+from datetime import timedelta, datetime, timezone
 from pydantic import BaseModel
 from dotenv import load_dotenv
 
@@ -14,7 +14,7 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl='/signin')
 
 SECRET_KEY = os.getenv('AUTH_ENCRYPTION_KEY')
 ALGORITHM = os.getenv('AUTH_ENCRYPTION_METHOD')
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 1440
 
 class Token(BaseModel):
     access_token: str
@@ -28,7 +28,7 @@ def hash_password(pw: str):
 
 def create_access_token(data: dict):
     to_encode = data.copy()
-    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
     to_encode.update({"expire": expire.strftime("%Y-%m-%d %H:%M:%S")})
 
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, ALGORITHM)
@@ -40,6 +40,14 @@ def verify_token_access(token: str):
         payload = jwt.decode(token, SECRET_KEY, algorithms=ALGORITHM)
 
         id: str = payload.get("user_id")
+        expiration: str = payload.get("expire")
+
+        if datetime.now(timezone.utc) > datetime.strptime(expiration, "%Y-%m-%d %H:%M:%S").replace(tzinfo=timezone.utc):
+            raise HTTPException(
+                status_code=401,
+                detail="Access Token is Expired",
+                headers={"WWW-Authenticate": "Bearer"}
+            )
 
         if id is None:
             raise HTTPException(

@@ -17,10 +17,16 @@ type SignResponse = {
 type GetCurrentResponse = {
   id: number;
   username: string;
-  hashed_pw: string;
+  access_token: string;
 }
 
-export const current = () => axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
+export const current = async () => {
+  const response = await axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
+
+  if (response.status === 200) {
+    store.set({ token: response.data.access_token, name: response.data.username })
+  }
+};
 
 export const signup = async (creds: Creds) => {
   const response = await axiosInstance.post<SignResponse>(`${prefix}/signup`, creds);

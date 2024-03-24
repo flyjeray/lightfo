@@ -19,6 +19,7 @@ class UserCreds(BaseModel):
 class CurrentUserData(BaseModel):
     id: int
     username: str
+    access_token: str
 
 class SignResponse(BaseModel):
     access_token: str
@@ -53,7 +54,7 @@ def sign_in(creds: UserCreds, db: db_dependency):
         access_token = auth_utils.create_access_token(data={"user_id": user.id})
         return { "access_token": access_token, "token_type": "bearer", "name": user.username }
     
-@router.get("/current", response_model=CurrentUserData, summary="Get id and username of current logged user. This method is just used for testing Auth")
+@router.get("/current", response_model=CurrentUserData, summary="Get id and username of current logged user. This method is used for autologin")
 def get_current_user(db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     data = auth_utils.verify_token_access(creds.credentials)
     
@@ -62,5 +63,5 @@ def get_current_user(db: db_dependency, creds: HTTPAuthorizationCredentials = De
     if user is None:
         raise HTTPException(status_code=401, detail="Your token is valid, but user of passed id is not found")
     else:
-        return { "id": user.id, "username": user.username }
+        return { "id": user.id, "username": user.username, "access_token": creds.credentials }
     

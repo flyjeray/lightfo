@@ -21,19 +21,23 @@
 	const signOut = () => API.auth.signout()
 </script>
 
-<div class="flex flex-col gap-4 w-1/4">
+<div class="flex flex-col gap-4 w-1/6 justify-center items-center">
 	{#if localToken && localName}
-		<p>Logged in as {localName}</p>
-		<button on:click={signOut}>Sign Out</button>
+		<p class="text-center">Logged in as {localName}</p>
+		<button class="w-1/2" on:click={signOut}>Sign Out</button>
 	{:else}
-		<input bind:value={nameInput} placeholder="Username" />
-		<input bind:value={pwInput} placeholder="Password" />
-		{#if action === 'signin'}
-			<button on:click={signIn}>Sign In</button>
-			<button on:click={() => { action = 'signup' }}>Or maybe Sign Up</button>
-		{:else}
-			<button on:click={signUp}>Sign Up</button>
-			<button on:click={() => { action = 'signin' }}>Or maybe Sign In</button>
-		{/if}
+		<div class="flex flex-row justify-between gap-2 w-full">
+			<input class="w-1/2" bind:value={nameInput} placeholder="Username" />
+			<input class="w-1/2" bind:value={pwInput} placeholder="Password" />
+		</div>
+		<div class="flex flex-row justify-between gap-2 w-full">
+			{#if action === 'signin'}
+				<button class="w-1/2" on:click={signIn}>Sign In</button>
+				<button class="w-1/2 border-0 border-b-2" on:click={() => { action = 'signup' }}>Or maybe Sign Up</button>
+			{:else}
+				<button class="w-1/2" on:click={signUp}>Sign Up</button>
+				<button class="w-1/2 border-0 border-b-2" on:click={() => { action = 'signin' }}>Or maybe Sign In</button>
+			{/if}
+		</div>
 	{/if}
 </div>

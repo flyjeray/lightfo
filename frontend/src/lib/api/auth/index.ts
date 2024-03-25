@@ -20,40 +20,42 @@ type GetCurrentResponse = {
   access_token: string;
 }
 
-export const current = async () => {
-  const response = await axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
+export class AuthAPI {
+  static current = async () => {
+    const response = await axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
+  
+    if (response.status === 200) {
+      store.set({ token: response.data.access_token, name: response.data.username })
+    } else {
+      window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
+      store.set({ token: null, name: null })
+    }
+  };
 
-  if (response.status === 200) {
-    store.set({ token: response.data.access_token, name: response.data.username })
-  } else {
+  static signup = async (creds: Creds) => {
+    const response = await axiosInstance.post<SignResponse>(`${prefix}/signup`, creds);
+    
+    if (response.status === 200) {
+      window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
+      store.set({ token: response.data.access_token, name: response.data.name })
+    }
+    
+    return response;
+  };
+
+  static signin = async (creds: Creds) => {
+    const response = await axiosInstance.post<SignResponse>(`${prefix}/signin`, creds);
+  
+    if (response.status === 200) {
+      window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
+      store.set({ token: response.data.access_token, name: response.data.name })
+    }
+    
+    return response;
+  }
+
+  static signout = () => {
     window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
     store.set({ token: null, name: null })
   }
-};
-
-export const signup = async (creds: Creds) => {
-  const response = await axiosInstance.post<SignResponse>(`${prefix}/signup`, creds);
-  
-  if (response.status === 200) {
-    window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
-    store.set({ token: response.data.access_token, name: response.data.name })
-  }
-  
-  return response;
-};
-
-export const signin = async (creds: Creds) => {
-  const response = await axiosInstance.post<SignResponse>(`${prefix}/signin`, creds);
-
-  if (response.status === 200) {
-    window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
-    store.set({ token: response.data.access_token, name: response.data.name })
-  }
-  
-  return response;
-}
-
-export const signout = () => {
-  window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
-  store.set({ token: null, name: null })
 }

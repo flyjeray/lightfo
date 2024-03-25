@@ -9,14 +9,16 @@ type GetPostsResponse = {
   pagination: Pagination;
 }
 
-export const getMany = async (page: number) => {
-  const response = await axiosInstance.get<GetPostsResponse>(`${prefix}/`, { params: { page, perPage: 5 }});
+export class PostsAPI {
+  static getMany = async (page: number) => {
+    const response = await axiosInstance.get<GetPostsResponse>(`${prefix}/`, { params: { page, perPage: 5 }});
+  
+    return response;
+  }
 
-  return response;
-}
-
-export const getSingle = async (id: number) => {
-  const response = await axiosInstance.get<Post>(`${prefix}/${id}`);
-
-  return response;
+  static getSingle = async (id: number) => {
+    const response = await axiosInstance.get<Post>(`${prefix}/${id}`);
+  
+    return response;
+  }
 }

@@ -1,7 +1,7 @@
 <script>
 	import '../app.css';
 	import store from '$lib/store/store';
-	import Header from '$lib/components/Header/index.svelte'
+	import Header from '$lib/components/Header/index.svelte';
 	import { onMount } from 'svelte';
 	import { API, AUTH_TOKEN_LOCALSTORAGE_PATH } from '$lib/api';
 
@@ -11,11 +11,11 @@
 		if (window.localStorage.getItem(AUTH_TOKEN_LOCALSTORAGE_PATH) && !token) {
 			API.auth.current();
 		}
-	})
+	});
 </script>
 
 <Header />
-<div class="p-6">
+<div class="p-6 pt-36 bg-slate-300 min-h-screen">
 	<slot />
 </div>
 

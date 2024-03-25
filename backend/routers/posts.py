@@ -93,5 +93,9 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
         }
     }
 
+@router.get('/{id}', status_code=200, response_model=Post, summary="Get a single post")
+def get_post(db: db_dependency, id: int):
+    post = db.query(models.Post).where(models.Post.id == id).first()
+    return post
 
 

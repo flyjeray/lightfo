@@ -14,3 +14,9 @@ export const getMany = async (page: number) => {
 
   return response;
 }
+
+export const getSingle = async (id: number) => {
+  const response = await axiosInstance.get<Post>(`${prefix}/${id}`);
+
+  return response;
+}

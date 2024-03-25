@@ -29,9 +29,11 @@
 </script>
 
 <section class="flex flex-col gap-6">
-  {#each posts as { title, text, created_at }}
+  {#each posts as { id, title, text, created_at }}
     <div class="flex flex-col gap-2">
-      <h2>{title}</h2>
+      <a href={`/post/${id}`}>
+        <h2>{title}</h2>
+      </a>
       <small>{created_at}</small>
       <p>{text}</p>
     </div>

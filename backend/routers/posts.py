@@ -84,12 +84,12 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
     offset = (page - 1) * per_page
     posts = db.query(models.Post).offset(offset).limit(per_page).all()
 
-    owners = {}
+    names = {}
 
-    def get_user_name(ownerID):
-        user = db.query(models.User).where(models.User.id == ownerID).first()
+    def get_user_name(id):
+        user = db.query(models.User).where(models.User.id == id).first()
         if user:
-            owners[ownerID] = user.username
+            names[id] = user.username
             return user.username
         else:
             return 'Unknown'
@@ -99,7 +99,7 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
         'title': p.title,
         'text': p.text,
         'created_at': p.created_at,
-        'owner': owners[p.owner] if p.owner in owners else get_user_name(p.owner)
+        'owner': names[p.owner] if p.owner in names else get_user_name(p.owner)
     } for p in posts]
 
     return { 

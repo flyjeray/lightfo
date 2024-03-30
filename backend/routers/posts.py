@@ -30,7 +30,7 @@ class Post(BaseModel):
     title: str
     text: str
     created_at: datetime
-    owner: int
+    owner: str
 
 class GetPostsResponse(BaseModel):
     posts: List[Post]
@@ -84,8 +84,26 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
     offset = (page - 1) * per_page
     posts = db.query(models.Post).offset(offset).limit(per_page).all()
 
+    owners = {}
+
+    def get_user_name(ownerID):
+        user = db.query(models.User).where(models.User.id == ownerID).first()
+        if user:
+            owners[ownerID] = user.username
+            return user.username
+        else:
+            return 'Unknown'
+
+    with_owner = [{    
+        'id': p.id,
+        'title': p.title,
+        'text': p.text,
+        'created_at': p.created_at,
+        'owner': owners[p.owner] if p.owner in owners else get_user_name(p.owner)
+    } for p in posts]
+
     return { 
-        "posts": posts,
+        "posts": with_owner,
         "pagination": {
             "is_last": page == total_pages,
             "total_pages": total_pages,

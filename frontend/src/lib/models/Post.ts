@@ -3,5 +3,5 @@ export type Post = {
   title: string
   text: string
   created_at: Date
-  owner: number
+  owner: string
 };

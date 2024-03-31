@@ -2,6 +2,7 @@ import axios from 'axios';
 
 import { AuthAPI } from './auth';
 import { PostsAPI } from './posts';
+import { UserAPI } from './users';
 
 export const axiosInstance = axios.create({
 	baseURL: import.meta.env.VITE_API_URL
@@ -18,4 +19,5 @@ axiosInstance.interceptors.request.use(config => {
 export const API = {
 	auth: AuthAPI,
 	posts: PostsAPI,
+  users: UserAPI,
 };

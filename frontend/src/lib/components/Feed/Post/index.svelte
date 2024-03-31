@@ -7,7 +7,9 @@
 <a href={`/post/${data.id}`}>
 	<div class="flex flex-col gap-2 shadow-md p-4 hover:shadow-xl rounded-xl bg-gray-50">
 		<h2>{data.title}</h2>
-		<small>{new Date(data.created_at).toLocaleString()} by {data.owner}</small>
+		<small>
+			{new Date(data.created_at).toLocaleString()} by <a class="underline" href={`/user/${data.owner}`}>{data.owner_name}</a>
+		</small>
 		<p>{data.text}</p>
 	</div>
 </a>

@@ -4,14 +4,14 @@
 	import authStore from '$lib/store/authStore';
 	import feedStore from '$lib/store/feedStore';
 
-	import type { Post } from '$lib/models/Post';
+	import type { PostWithNamedOwner } from '$lib/models/Post';
 	import type { Pagination } from '$lib/models/Pagination';
 
 	import PostCard from '$lib/components/Feed/Post/index.svelte';
 	import CreatePost from '$lib/components/Feed/CreatePost/index.svelte';
 
 	let localToken: string | null;
-	let feed: Post[] = [];
+	let feed: PostWithNamedOwner[] = [];
 	let pagination: Pagination | null;
 
 	authStore.subscribe(data => localToken = data.token)
@@ -22,11 +22,11 @@
 
 	let page = 1;
 
-	const fetchData = () => {
+	const fetchData = (firstLoad: boolean) => {
 		API.posts.getMany(page).then((response) => {
 			feedStore.update(state => ({ 
 				...state,
-				feed: [...state.feed, ...response.data.posts], 
+				feed: firstLoad ? response.data.posts : [...state.feed, ...response.data.posts], 
 				pagination: response.data.pagination
 			}))
 		});
@@ -35,12 +35,12 @@
 	const nextPage = () => {
 		if (pagination && !pagination.is_last) {
 			page++;
-			fetchData();
+			fetchData(false);
 		}
 	};
 
 	onMount(() => {
-		fetchData();
+		fetchData(true);
 	});
 </script>
 

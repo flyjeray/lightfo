@@ -30,18 +30,16 @@ class Post(BaseModel):
     title: str
     text: str
     created_at: datetime
-
-class PostWithIDdOwner(Post):
     owner: int
 
 class PostWithNamedOwner(Post):
-    owner: str
+    owner_name: str
 
 class GetPostsResponse(BaseModel):
     posts: List[PostWithNamedOwner]
     pagination: models.Pagination
 
-@router.post('/create', status_code=201, response_model=PostWithIDdOwner, summary="Create a new post")
+@router.post('/create', status_code=201, response_model=Post, summary="Create a new post")
 def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     token_data = auth_utils.verify_token_access(creds.credentials)
 
@@ -82,12 +80,18 @@ def delete_post(id: int, db: db_dependency, creds: HTTPAuthorizationCredentials 
 
     return { "message": "success" }
 
-@router.get('/', status_code=200, response_model=GetPostsResponse, summary="Get posts for main page")
-def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
-    total_posts = db.query(func.count(models.Post.id)).scalar()
+@router.get('/', status_code=200, response_model=GetPostsResponse, summary="Get posts for Feed page or posts of a specific user")
+def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100), uid: int | None = None):
+    if uid is None:
+        query = db.query(models.Post)
+    else:
+        query = db.query(models.Post).filter(models.Post.owner == uid)
+
+    total_posts = query.with_entities(func.count(models.Post.id)).scalar()
     total_pages = (total_posts + per_page - 1) // per_page
     offset = (page - 1) * per_page
-    posts = db.query(models.Post).order_by(desc(models.Post.created_at)).offset(offset).limit(per_page).all()
+
+    posts = query.order_by(desc(models.Post.created_at)).offset(offset).limit(per_page).all()
 
     names = {}
 
@@ -99,16 +103,17 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
         else:
             return 'Unknown'
 
-    with_owner = [{    
+    named_posts = [{    
         'id': p.id,
         'title': p.title,
         'text': p.text,
         'created_at': p.created_at,
-        'owner': names[p.owner] if p.owner in names else get_user_name(p.owner)
+        'owner': p.owner,
+        'owner_name': names[p.owner] if p.owner in names else get_user_name(p.owner)
     } for p in posts]
 
     return { 
-        "posts": with_owner,
+        "posts": named_posts,
         "pagination": {
             "is_last": page == total_pages,
             "total_pages": total_pages,
@@ -119,6 +124,14 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
 @router.get('/{id}', status_code=200, response_model=PostWithNamedOwner, summary="Get a single post")
 def get_post(db: db_dependency, id: int):
     post = db.query(models.Post).where(models.Post.id == id).first()
-    return post
+    user = db.query(models.User).where(models.User.id == post.owner).first()
+    return {    
+        'id': post.id,
+        'title': post.title,
+        'text': post.text,
+        'created_at': post.created_at,
+        'owner': post.owner,
+        'owner_name': user.username
+    }
 
 

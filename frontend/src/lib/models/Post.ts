@@ -1,7 +1,14 @@
-export type Post = {
+type Post = {
   id: number
   title: string
   text: string
   created_at: Date
-  owner: string
 };
+
+export type PostWithNamedOwner = Post & {
+  owner: string;
+}
+
+export type PostWithIDdOwner = Post & {
+  owner: number;
+}

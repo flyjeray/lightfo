@@ -1,6 +1,6 @@
 <script>
 	import '../app.css';
-	import store from '$lib/store/store';
+	import store from '$lib/store/authStore';
 	import Header from '$lib/components/Header/index.svelte';
 	import { onMount } from 'svelte';
 	import { API, AUTH_TOKEN_LOCALSTORAGE_PATH } from '$lib/api';
@@ -20,7 +20,7 @@
 </div>
 
 <style lang="postcss">
-	:global(button, input) {
+	:global(button, input, textarea) {
 		border: 1px solid black;
 	}
 </style>

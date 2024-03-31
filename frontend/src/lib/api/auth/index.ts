@@ -1,5 +1,5 @@
 import { AUTH_TOKEN_LOCALSTORAGE_PATH, axiosInstance } from "..";
-import store from "$lib/store/store";
+import store from "$lib/store/authStore";
 
 const prefix = '/auth'
 

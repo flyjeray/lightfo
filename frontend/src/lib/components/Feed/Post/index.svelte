@@ -1,7 +1,7 @@
 <script lang="ts">
-	import type { Post } from '$lib/models/Post';
+	import type { PostWithNamedOwner } from '$lib/models/Post';
 
-	export let data: Post;
+	export let data: PostWithNamedOwner;
 </script>
 
 <a href={`/post/${data.id}`}>

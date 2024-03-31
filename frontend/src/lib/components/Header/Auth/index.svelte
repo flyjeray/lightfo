@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { API } from '$lib/api';
-	import store from '$lib/store/store';
+	import store from '$lib/store/authStore';
 	
 	let localToken: string | null;
 	let localName: string | null;

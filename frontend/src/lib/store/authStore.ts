@@ -10,7 +10,7 @@ const initialState: State = {
   name: null,
 };
 
-const { subscribe, set } = writable(initialState);
+const { subscribe, set } = writable<State>(initialState);
 
 export default {
   subscribe,

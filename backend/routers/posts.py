@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from pydantic import BaseModel
 from typing import List
 from database import db_dependency
-from sqlalchemy import func
+from sqlalchemy import func, desc
 from datetime import datetime
 import models
 import auth_utils
@@ -30,13 +30,18 @@ class Post(BaseModel):
     title: str
     text: str
     created_at: datetime
+
+class PostWithIDdOwner(Post):
+    owner: int
+
+class PostWithNamedOwner(Post):
     owner: str
 
 class GetPostsResponse(BaseModel):
-    posts: List[Post]
+    posts: List[PostWithNamedOwner]
     pagination: models.Pagination
 
-@router.post('/create', status_code=201, response_model=CreatePostResponse, summary="Create a new post")
+@router.post('/create', status_code=201, response_model=PostWithIDdOwner, summary="Create a new post")
 def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     token_data = auth_utils.verify_token_access(creds.credentials)
 
@@ -55,7 +60,7 @@ def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthoriza
             user.posts = [new_post.id]
         db.commit()
 
-        return { "id": new_post.id }
+        return new_post
     
 @router.delete("/delete", status_code=200, response_model=MessageResponse, summary="Delete an existing post")
 def delete_post(id: int, db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
@@ -82,7 +87,7 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
     total_posts = db.query(func.count(models.Post.id)).scalar()
     total_pages = (total_posts + per_page - 1) // per_page
     offset = (page - 1) * per_page
-    posts = db.query(models.Post).offset(offset).limit(per_page).all()
+    posts = db.query(models.Post).order_by(desc(models.Post.created_at)).offset(offset).limit(per_page).all()
 
     names = {}
 
@@ -111,7 +116,7 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
         }
     }
 
-@router.get('/{id}', status_code=200, response_model=Post, summary="Get a single post")
+@router.get('/{id}', status_code=200, response_model=PostWithNamedOwner, summary="Get a single post")
 def get_post(db: db_dependency, id: int):
     post = db.query(models.Post).where(models.Post.id == id).first()
     return post

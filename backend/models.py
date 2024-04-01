@@ -9,7 +9,6 @@ class User(Base):
     username = Column(String, index=True)
     hashed_pw = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    posts = Column(ARRAY(Integer), index=True, server_default="{}")
 
 class Post(Base):
     __tablename__ = "posts"

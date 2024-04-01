@@ -1,19 +1,19 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import auth, posts, users
+from routers import auth, posts, users, comments
 
 tags_metadata = [
     {
         "name": "Auth",
-        "description": "Operations that are related to User Authentication",
     },
     {
         "name": "Posts",
-        "description": "Operations that are related to Posts, created by users",
     },
     {
         "name": "Users",
-        "description": "Operations that are related to Users"
+    },
+    {
+        "name": "Comments",
     }
 ]
 
@@ -36,3 +36,4 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(posts.router)
 app.include_router(users.router)
+app.include_router(comments.router)

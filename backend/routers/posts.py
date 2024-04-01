@@ -22,15 +22,13 @@ class CreatePostPayload(BaseModel):
 class CreatePostResponse(BaseModel):
     id: int
 
-class MessageResponse(BaseModel):
-    message: str
-
 class Post(BaseModel):
     id: int
     title: str
     text: str
     created_at: datetime
     owner: int
+    comment_amount: int
 
 class PostWithNamedOwner(Post):
     owner_name: str
@@ -54,7 +52,7 @@ def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthoriza
 
         return new_post
     
-@router.delete("/delete", status_code=200, response_model=MessageResponse, summary="Delete an existing post")
+@router.delete("/delete", status_code=200, response_model=models.MessageResponse, summary="Delete an existing post")
 def delete_post(id: int, db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     token_data = auth_utils.verify_token_access(creds.credentials)
 
@@ -100,6 +98,7 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
         'text': p.text,
         'created_at': p.created_at,
         'owner': p.owner,
+        'comment_amount': p.comment_amount,
         'owner_name': names[p.owner] if p.owner in names else get_user_name(p.owner)
     } for p in posts]
 
@@ -122,6 +121,7 @@ def get_post(db: db_dependency, id: int):
         'text': post.text,
         'created_at': post.created_at,
         'owner': post.owner,
+        'comment_amount': post.comment_amount,
         'owner_name': user.username
     }
 

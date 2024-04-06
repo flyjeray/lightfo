@@ -43,6 +43,10 @@
     }
   }
 
+  const onCommentDeleted = (id: number) => {
+    comments = comments.filter(c => c.id !== id)
+  }
+
   onMount(() => {
     fetchData()
   })
@@ -59,7 +63,7 @@
       />
     {/if}
     {#each comments as comment}
-      <CommentCard data={comment} />
+      <CommentCard data={comment} onDelete={onCommentDeleted} />
     {/each}
     {#if commentPagination && !commentPagination.is_last}
 		  <button class="rounded-xl" on:click={nextPage}>Load more</button>

@@ -11,7 +11,8 @@ type Creds = {
 type SignResponse = {
   access_token: string, 
   token_type: string,
-  name: string
+  name: string,
+  id: number
 }
 
 type GetCurrentResponse = {
@@ -24,11 +25,11 @@ export class AuthAPI {
   static current = () => {
     axiosInstance.get<GetCurrentResponse>(`${prefix}/current`)
       .then(res => {
-        store.set({ token: res.data.access_token, name: res.data.username })
+        store.set({ token: res.data.access_token, name: res.data.username, id: res.data.id})
       })
       .catch(() => {
         window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
-        store.set({ token: null, name: null })
+        store.set({ token: null, name: null, id: null })
       });
   };
 
@@ -37,7 +38,7 @@ export class AuthAPI {
     
     if (response.status === 200) {
       window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
-      store.set({ token: response.data.access_token, name: response.data.name })
+      store.set({ token: response.data.access_token, name: response.data.name, id: response.data.id })
     }
     
     return response;
@@ -48,7 +49,7 @@ export class AuthAPI {
   
     if (response.status === 200) {
       window.localStorage.setItem(AUTH_TOKEN_LOCALSTORAGE_PATH, response.data.access_token);
-      store.set({ token: response.data.access_token, name: response.data.name })
+      store.set({ token: response.data.access_token, name: response.data.name, id: response.data.id })
     }
     
     return response;
@@ -56,6 +57,6 @@ export class AuthAPI {
 
   static signout = () => {
     window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
-    store.set({ token: null, name: null })
+    store.set({ token: null, name: null, id: null })
   }
 }

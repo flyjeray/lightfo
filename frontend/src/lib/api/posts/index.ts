@@ -37,4 +37,17 @@ export class PostsAPI {
   
     return response;
   }
+
+  static delete = async (id: number) => {
+    const response = await axiosInstance.delete(`${prefix}/delete`, { params: { id }});
+
+    if (response.status === 200) {
+      feedStore.update(state => ({
+        ...state,
+        feed: state.feed.filter(post => post.id !== id)
+      }))
+    }
+
+    return response;
+  }
 }

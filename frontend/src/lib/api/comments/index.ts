@@ -21,4 +21,10 @@ export class CommentsAPI {
 
     return response;
   }
+
+  static delete = async (id: number) => {
+    const response = await axiosInstance.delete(`${prefix}/delete/${id}`);
+
+    return response;
+  }
 }

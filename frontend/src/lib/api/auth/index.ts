@@ -21,15 +21,15 @@ type GetCurrentResponse = {
 }
 
 export class AuthAPI {
-  static current = async () => {
-    const response = await axiosInstance.get<GetCurrentResponse>(`${prefix}/current`);
-  
-    if (response.status === 200) {
-      store.set({ token: response.data.access_token, name: response.data.username })
-    } else {
-      window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
-      store.set({ token: null, name: null })
-    }
+  static current = () => {
+    axiosInstance.get<GetCurrentResponse>(`${prefix}/current`)
+      .then(res => {
+        store.set({ token: res.data.access_token, name: res.data.username })
+      })
+      .catch(() => {
+        window.localStorage.removeItem(AUTH_TOKEN_LOCALSTORAGE_PATH);
+        store.set({ token: null, name: null })
+      });
   };
 
   static signup = async (creds: Creds) => {

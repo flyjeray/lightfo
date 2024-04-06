@@ -5,6 +5,7 @@ from pydantic import BaseModel
 from sqlalchemy import func, desc
 from typing import List
 from .users import User
+from datetime import datetime
 import models
 import auth_utils
 
@@ -19,21 +20,25 @@ class Comment(BaseModel):
     id: int
     text: str
     post: int
+    created_at: datetime
     user: User
+
+class PostCommentPayload(BaseModel):
+    text: str
 
 class GetCommentsResponse(BaseModel):
     comments: List[Comment]
     pagination: models.Pagination
 
 @router.post('/add/{post_id}', status_code=201, response_model=Comment, description="Post a comment to a post")
-def post_comment(db: db_dependency, post_id: int, text: str, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
+def post_comment(db: db_dependency, post_id: int, payload: PostCommentPayload, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     token_data = auth_utils.verify_token_access(creds.credentials)
     
     post = db.query(models.Post).where(models.Post.id == post_id).first()
     user = db.query(models.User).where(models.User.id == token_data.id).first()
 
     if post and user:
-        comment = models.Comment(text=text, post=post_id, user=user.id)
+        comment = models.Comment(text=payload.text, post=post_id, user=user.id)
         db.add(comment)
         post.comment_amount = post.comment_amount + 1
         user.comment_amount = user.comment_amount + 1
@@ -42,6 +47,7 @@ def post_comment(db: db_dependency, post_id: int, text: str, creds: HTTPAuthoriz
         return {
             'id': comment.id,
             'text': comment.text,
+            'created_at': comment.created_at,
             'post': post_id,
             'user': {
                 'id': user.id,
@@ -94,6 +100,7 @@ def get_comments_for_post(db: db_dependency, post_id: int, page: int = Query(1, 
         'id': c.id,
         'text': c.text,
         'post': c.post,
+        'created_at': c.created_at,
         'user': users[c.user] if c.user in users else get_user(c.user),
     } for c in comments]
 

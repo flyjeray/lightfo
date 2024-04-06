@@ -5,4 +5,5 @@ export type Comment = {
   text: string
   post: number
   user: User
+  created_at: Date
 }

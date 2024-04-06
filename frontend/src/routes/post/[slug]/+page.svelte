@@ -1,9 +1,16 @@
 <script lang="ts">
 	import { API } from '$lib/api/index.js';
+	import CommentCard from '$lib/components/Post/Comment/index.svelte';
+  import PostContent from '$lib/components/Post/Content/index.svelte';
+  import CreateComment from '$lib/components/Post/CreateComment/index.svelte';
 	import type { Comment } from '$lib/models/Comments.js';
 	import type { Pagination } from '$lib/models/Pagination.js';
 	import type { Post } from '$lib/models/Post.js';
 	import { onMount } from 'svelte';
+  import authStore from '$lib/store/authStore';
+
+  let localToken: string | null = null;
+	authStore.subscribe(data => localToken = data.token)
 
   export let data;
 
@@ -24,6 +31,7 @@
 
   const nextPage = () => {
     commentPage++; 
+    getComments()
   }
 
   const fetchData = async () => {
@@ -42,17 +50,16 @@
 
 <section class="w-1/2 mx-auto flex flex-col gap-6">
   {#if postData}
-    <div class="flex flex-col gap-2 shadow-md p-4 rounded-xl bg-gray-50">
-      <h1>{postData.title}</h1>
-      <small>{postData.created_at}</small>
-      <p>{postData.text}</p>
-    </div>
+    <PostContent data={postData} />
     <p>{postData.comment_amount} {postData.comment_amount > 1 ? 'comments' : 'comment'}</p>
+    {#if localToken}
+      <CreateComment 
+        postID={parseInt(data.slug)} 
+        addComment={newComment => comments = [newComment, ...comments]}
+      />
+    {/if}
     {#each comments as comment}
-      <div class="flex flex-col gap-2 shadow-md p-4 rounded-xl bg-gray-50">
-        <p>{comment.user.username}</p>
-        <p>{comment.text}</p>
-      </div>
+      <CommentCard data={comment} />
     {/each}
     {#if commentPagination && !commentPagination.is_last}
 		  <button class="rounded-xl" on:click={nextPage}>Load more</button>

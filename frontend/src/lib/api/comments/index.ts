@@ -15,4 +15,10 @@ export class CommentsAPI {
   
     return response;
   }
+
+  static add = async (postID: number, text: string) => {
+    const response = await axiosInstance.post<Comment>(`${prefix}/add/${postID}`, { text });
+
+    return response;
+  }
 }

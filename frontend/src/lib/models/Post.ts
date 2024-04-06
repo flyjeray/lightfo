@@ -4,6 +4,7 @@ export type Post = {
   text: string
   created_at: Date
   owner: number
+  comment_amount: number
 };
 
 export type PostWithNamedOwner = Post & {

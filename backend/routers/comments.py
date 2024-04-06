@@ -77,7 +77,7 @@ def delete_comment(db: db_dependency, comment_id: int, creds: HTTPAuthorizationC
 def get_comments_for_post(db: db_dependency, post_id: int, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
     query = db.query(models.Comment).where(models.Comment.post == post_id)
 
-    total_posts = query.with_entities(func.count(models.Post.id)).scalar()
+    total_posts = query.with_entities(func.count(models.Comment.id)).scalar()
     total_pages = (total_posts + per_page - 1) // per_page
     offset = (page - 1) * per_page
 

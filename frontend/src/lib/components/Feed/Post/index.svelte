@@ -11,5 +11,8 @@
 			{new Date(data.created_at).toLocaleString()} by <a class="underline" href={`/user/${data.owner}`}>{data.owner_name}</a>
 		</small>
 		<p>{data.text}</p>
+		{#if data.comment_amount > 0}
+			<small>{data.comment_amount} {data.comment_amount > 1 ? 'comments' : 'comment'}</small>
+		{/if}
 	</div>
 </a>

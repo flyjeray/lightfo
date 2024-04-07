@@ -16,6 +16,12 @@ export class CommentsAPI {
     return response;
   }
 
+  static getForUser = async (userID: number, page: number) => {
+    const response = await axiosInstance.get<GetCommentsResponse>(`${prefix}/user/${userID}`, { params: { page, perPage: 5 }});
+  
+    return response;
+  }
+
   static add = async (postID: number, text: string) => {
     const response = await axiosInstance.post<Comment>(`${prefix}/add/${postID}`, { text });
 

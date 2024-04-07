@@ -5,8 +5,5 @@ export type Post = {
   created_at: Date
   owner: number
   comment_amount: number
-};
-
-export type PostWithNamedOwner = Post & {
   owner_name: string;
-}
+};

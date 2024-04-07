@@ -2,54 +2,55 @@
 	import { API } from '$lib/api';
 	import { onMount } from 'svelte';
 	import authStore from '$lib/store/authStore';
-	import feedStore from '$lib/store/feedStore';
 
-	import type { PostWithNamedOwner } from '$lib/models/Post';
+	import type { Post } from '$lib/models/Post';
 	import type { Pagination } from '$lib/models/Pagination';
 
 	import PostCard from '$lib/components/Feed/Post/index.svelte';
 	import CreatePost from '$lib/components/Feed/CreatePost/index.svelte';
 
 	let localToken: string | null;
-	let feed: PostWithNamedOwner[] = [];
+	let posts: Post[] = [];
 	let pagination: Pagination | null;
 
 	authStore.subscribe(data => localToken = data.token)
-	feedStore.subscribe(data => {
-		feed = data.feed;
-		pagination = data.pagination
-	});
 
 	let page = 1;
 
-	const fetchData = (firstLoad: boolean) => {
+	const fetchData = () => {
 		API.posts.getMany(page).then((response) => {
-			feedStore.update(state => ({ 
-				...state,
-				feed: firstLoad ? response.data.posts : [...state.feed, ...response.data.posts], 
-				pagination: response.data.pagination
-			}))
+			posts = [...posts, ...response.data.posts];
+			pagination = response.data.pagination;
 		});
 	};
 
 	const nextPage = () => {
 		if (pagination && !pagination.is_last) {
 			page++;
-			fetchData(false);
+			fetchData();
 		}
 	};
 
+	const onPostDeleted = (id: number) => posts = posts.filter(p => p.id !== id);
+	
+	const onPostAdded = (data: Post) => posts = [data, ...posts];
+
 	onMount(() => {
-		fetchData(true);
+		fetchData();
 	});
 </script>
 
 <section class="w-1/2 mx-auto flex flex-col gap-6">
 	{#if localToken}
-		<CreatePost />
+		<CreatePost
+			onCreated={onPostAdded}
+		/>
 	{/if}
-	{#each feed as post}
-		<PostCard data={post} />
+	{#each posts as post}
+		<PostCard 
+			data={post}
+			onDelete={onPostDeleted}
+		/>
 	{/each}
 	{#if pagination && !pagination.is_last}
 		<button class="rounded-xl" on:click={nextPage}>Load more</button>

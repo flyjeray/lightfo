@@ -29,12 +29,10 @@ class Post(BaseModel):
     created_at: datetime
     owner: int
     comment_amount: int
-
-class PostWithNamedOwner(Post):
     owner_name: str
 
 class GetPostsResponse(BaseModel):
-    posts: List[PostWithNamedOwner]
+    posts: List[Post]
     pagination: models.Pagination
 
 @router.post('/create', status_code=201, response_model=Post, summary="Create a new post")
@@ -50,7 +48,15 @@ def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthoriza
         db.add(new_post)
         db.commit()
 
-        return new_post
+        return {    
+            'id': new_post.id,
+            'title': new_post.title,
+            'text': new_post.text,
+            'created_at': new_post.created_at,
+            'owner': new_post.owner,
+            'comment_amount': new_post.comment_amount,
+            'owner_name': user.username
+        }
     
 @router.delete("/delete", status_code=200, response_model=models.MessageResponse, summary="Delete an existing post")
 def delete_post(id: int, db: db_dependency, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
@@ -105,13 +111,13 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
     return { 
         "posts": named_posts,
         "pagination": {
-            "is_last": page == total_pages,
+            "is_last": page >= total_pages,
             "total_pages": total_pages,
             "total_entries": total_posts,
         }
     }
 
-@router.get('/{id}', status_code=200, response_model=PostWithNamedOwner, summary="Get a single post")
+@router.get('/{id}', status_code=200, response_model=Post, summary="Get a single post")
 def get_post(db: db_dependency, id: int):
     post = db.query(models.Post).where(models.Post.id == id).first()
     user = db.query(models.User).where(models.User.id == post.owner).first()

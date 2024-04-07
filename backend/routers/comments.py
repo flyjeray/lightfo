@@ -115,7 +115,7 @@ def get_comments_for_post(db: db_dependency, post_id: int, page: int = Query(1, 
     return {
         'comments': filled,
         "pagination": {
-            "is_last": page == total_pages,
+            "is_last": page >= total_pages,
             "total_pages": total_pages,
             "total_entries": total_comments,
         }
@@ -155,7 +155,7 @@ def get_comments_for_user(db: db_dependency, user_id: int, page: int = Query(1, 
     return {
         'comments': filled,
         "pagination": {
-            "is_last": page == total_pages,
+            "is_last": page >= total_pages,
             "total_pages": total_pages,
             "total_entries": total_comments,
         }

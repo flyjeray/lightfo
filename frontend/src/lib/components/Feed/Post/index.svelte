@@ -1,9 +1,10 @@
 <script lang="ts">
 	import { API } from '$lib/api';
-	import type { PostWithNamedOwner } from '$lib/models/Post';
+	import type { Post } from '$lib/models/Post';
 	import authStore from '$lib/store/authStore';
 
-	export let data: PostWithNamedOwner;
+	export let data: Post;
+	export let onDelete: (id: number) => void;
 
 	let id: number | null = null;
 	authStore.subscribe(data => id = data.id)
@@ -12,7 +13,7 @@
 		e.stopPropagation()
 		e.preventDefault()
 		if (confirm(`Are you sure you want to delete post "${data.title}"?`)) {
-			API.posts.delete(data.id)
+			API.posts.delete(data.id).then(() => onDelete(data.id))
 		}
 	}
 </script>

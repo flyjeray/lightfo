@@ -1,12 +1,15 @@
 <script lang="ts">
 	import { API } from "$lib/api";
+	import type { Post } from "$lib/models/Post";
 
   let title = '';
   let text = '';
 
+  export let onCreated: (post: Post) => void;
+
   const send = () => {
     if (title && text) {
-      API.posts.create(title, text);
+      API.posts.create(title, text).then(response => onCreated(response.data));
     }
   }
 </script>

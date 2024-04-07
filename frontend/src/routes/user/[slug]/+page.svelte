@@ -1,9 +1,8 @@
 <script lang="ts">
 	import { API } from '$lib/api';
 	import { onMount } from 'svelte';
-	import feedStore from '$lib/store/feedStore';
 
-	import type { PostWithNamedOwner } from '$lib/models/Post';
+	import type { Post } from '$lib/models/Post';
 	import type { Pagination } from '$lib/models/Pagination';
 	import type { Comment } from '$lib/models/Comments';
 
@@ -12,8 +11,8 @@
 
   export let data;
 
-	let feed: PostWithNamedOwner[] = [];
-	let feedPagination: Pagination | null;
+	let posts: Post[] = [];
+	let postsPagination: Pagination | null;
 
 	let comments: Comment[] = [];
 	let commentsPagination: Pagination | null = null;
@@ -23,21 +22,13 @@
 	const tabs = ['POSTS', 'COMMENTS'] as const;
 	let activeTab: typeof tabs[number] = 'POSTS';
 
-	feedStore.subscribe(data => {
-		feed = data.feed;
-		feedPagination = data.pagination
-	});
-
 	let feedPage = 1;
 	let commentsPage = 1;
 
-	const fetchFeed = (firstLoad: boolean) => {
+	const fetchFeed = () => {
 		API.posts.getMany(feedPage, parseInt(data.slug)).then((response) => {
-			feedStore.update(state => ({ 
-				...state,
-				feed: firstLoad ? response.data.posts : [...state.feed, ...response.data.posts], 
-				feedPagination: response.data.pagination
-			}))
+			posts = [...posts, ...response.data.posts];
+			postsPagination = response.data.pagination;
 		});
 	};
 
@@ -55,9 +46,9 @@
   }
 
 	const nextPageFeed = () => {
-		if (feedPagination && !feedPagination.is_last) {
+		if (postsPagination && !postsPagination.is_last) {
 			feedPage++;
-			fetchFeed(false);
+			fetchFeed();
 		}
 	};
 
@@ -68,12 +59,12 @@
 		}
 	};
 
-	const onCommentDeleted = (id: number) => {
-		comments = comments.filter(c => c.id !== id)
-	}
+	const onPostDeleted = (id: number) => posts = posts.filter(p => p.id != id)
+
+	const onCommentDeleted = (id: number) => comments = comments.filter(c => c.id !== id)
 
 	onMount(() => {
-		fetchFeed(true);
+		fetchFeed();
 		fetchComments();
     fetchUser();
 	});
@@ -93,10 +84,13 @@
 			{/each}
 		</div>
 		{#if activeTab == 'POSTS'}
-			{#each feed as post}
-				<PostCard data={post} />
+			{#each posts as post}
+				<PostCard 
+					data={post}
+					onDelete={onPostDeleted}
+				/>
 			{/each}
-			{#if feedPagination && !feedPagination.is_last}
+			{#if postsPagination && !postsPagination.is_last}
 				<button class="rounded-xl" on:click={nextPageFeed}>Load more</button>
 			{/if}
 		{:else if activeTab == 'COMMENTS'}

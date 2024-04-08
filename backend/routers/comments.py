@@ -3,7 +3,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from database import db_dependency
 from pydantic import BaseModel
 from sqlalchemy import func, desc
-from typing import List
+from typing import List, Optional
 from .users import User
 from datetime import datetime
 import models
@@ -20,26 +20,25 @@ class Comment(BaseModel):
     id: int
     text: str
     post: int
+    parent_comment: Optional[int]
     post_title: str
     created_at: datetime
     user: User
 
 class PostCommentPayload(BaseModel):
+    post_id: int
+    parent_comment_id: Optional[int]
     text: str
 
-class GetCommentsResponse(BaseModel):
-    comments: List[Comment]
-    pagination: models.Pagination
-
 @router.post('/add/{post_id}', status_code=201, response_model=Comment, description="Post a comment to a post")
-def post_comment(db: db_dependency, post_id: int, payload: PostCommentPayload, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
+def post_comment(db: db_dependency, payload: PostCommentPayload, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     token_data = auth_utils.verify_token_access(creds.credentials)
     
-    post = db.query(models.Post).where(models.Post.id == post_id).first()
+    post = db.query(models.Post).where(models.Post.id == payload.post_id).first()
     user = db.query(models.User).where(models.User.id == token_data.id).first()
 
     if post and user:
-        comment = models.Comment(text=payload.text, post=post_id, user=user.id)
+        comment = models.Comment(text=payload.text, post=payload.post_id, user=user.id, parent_comment=payload.parent_comment_id)
         db.add(comment)
         post.comment_amount = post.comment_amount + 1
         user.comment_amount = user.comment_amount + 1
@@ -49,8 +48,9 @@ def post_comment(db: db_dependency, post_id: int, payload: PostCommentPayload, c
             'id': comment.id,
             'text': comment.text,
             'created_at': comment.created_at,
-            'post': post_id,
+            'post': payload.post_id,
             'post_title': post.title,
+            'parent_comment': payload.parent_comment_id,
             'user': {
                 'id': user.id,
                 'username': user.username
@@ -81,14 +81,25 @@ def delete_comment(db: db_dependency, comment_id: int, creds: HTTPAuthorizationC
 
     return { 'message': 'success' }
 
-@router.get('/{post_id}', status_code=200, response_model=GetCommentsResponse, description="Get comments for specific post")
-def get_comments_for_post(db: db_dependency, post_id: int, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
-    post = db.query(models.Post).where(models.Post.id == post_id).first()
+class GetCommentsPayload(BaseModel):
+    post_id: int
+    parent_comment_id: Optional[int]
+
+class GetCommentsResponse(BaseModel):
+    comments: List[Comment]
+    pagination: models.Pagination
+
+@router.get('/', status_code=200, response_model=GetCommentsResponse, description="Get comments for specific post")
+def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
+    post = db.query(models.Post).where(models.Post.id == payload.post_id).first()
 
     if post is None:
         raise HTTPException(status_code=404, detail="Post is not found")
-
-    query = db.query(models.Comment).where(models.Comment.post == post_id)
+    
+    if payload.parent_comment_id:
+        query = db.query(models.Comment).where(models.Comment.parent_comment == payload.parent_comment_id)
+    else:
+        query = db.query(models.Comment).where(models.Comment.post == payload.post_id)
 
     total_comments = query.with_entities(func.count(models.Comment.id)).scalar()
     total_pages = (total_comments + per_page - 1) // per_page
@@ -108,6 +119,7 @@ def get_comments_for_post(db: db_dependency, post_id: int, page: int = Query(1, 
         'text': c.text,
         'post': c.post,
         'post_title': post.title,
+        'parent_comment': c.parent_comment,
         'created_at': c.created_at,
         'user': users[c.user] if c.user in users else get_user(c.user),
     } for c in comments]
@@ -148,6 +160,7 @@ def get_comments_for_user(db: db_dependency, user_id: int, page: int = Query(1, 
         'text': c.text,
         'post': c.post,
         'post_title': posts[c.post] if c.post in posts else get_post(c.post),
+        'parent_comment': c.parent_comment,
         'created_at': c.created_at,
         'user': user,
     } for c in comments]

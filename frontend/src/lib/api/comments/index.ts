@@ -4,14 +4,27 @@ import { axiosInstance } from "..";
 
 const prefix = '/comments';
 
+type GetCommentsPayload = {
+  post_id: number
+  parent_comment_id?: number
+  page: number
+  perPage?: number
+}
+
 type GetCommentsResponse = {
   comments: Comment[];
   pagination: Pagination;
 }
 
+type AddCommentPayload = {
+  post_id: number
+  parent_comment_id?: number
+  text: string
+}
+
 export class CommentsAPI {
-  static getForPost = async (postID: number, page: number) => {
-    const response = await axiosInstance.get<GetCommentsResponse>(`${prefix}/${postID}`, { params: { page, perPage: 5 }});
+  static getForPost = async (payload: GetCommentsPayload) => {
+    const response = await axiosInstance.get<GetCommentsResponse>(`${prefix}/`, { params: { perPage: 5, ...payload }});
   
     return response;
   }
@@ -22,8 +35,8 @@ export class CommentsAPI {
     return response;
   }
 
-  static add = async (postID: number, text: string) => {
-    const response = await axiosInstance.post<Comment>(`${prefix}/add/${postID}`, { text });
+  static add = async (payload: AddCommentPayload) => {
+    const response = await axiosInstance.post<Comment>(`${prefix}/add`, { ...payload });
 
     return response;
   }

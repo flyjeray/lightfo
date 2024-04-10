@@ -9,7 +9,7 @@
 
   const send = () => {
     if (text) {
-      API.comments.add(postID, text).then(res => {
+      API.comments.add({ post_id: postID, text }).then(res => {
         addComment(res.data)
       })
     }

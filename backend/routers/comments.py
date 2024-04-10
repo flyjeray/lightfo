@@ -30,7 +30,7 @@ class PostCommentPayload(BaseModel):
     parent_comment_id: Optional[int]
     text: str
 
-@router.post('/add/{post_id}', status_code=201, response_model=Comment, description="Post a comment to a post")
+@router.post('/add', status_code=201, response_model=Comment, description="Post a comment to a post")
 def post_comment(db: db_dependency, payload: PostCommentPayload, creds: HTTPAuthorizationCredentials = Depends(token_auth_scheme)):
     token_data = auth_utils.verify_token_access(creds.credentials)
     

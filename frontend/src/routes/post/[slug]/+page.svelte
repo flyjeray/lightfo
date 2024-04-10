@@ -21,7 +21,10 @@
   let commentPagination: Pagination | null = null;
 
   const getComments = async () => {
-    const response = await API.comments.getForPost(parseInt(data.slug), commentPage);
+    const response = await API.comments.getForPost({
+      post_id: parseInt(data.slug), 
+      page: commentPage
+    });
 
     if (response.status === 200) {
       comments = [...comments, ...response.data.comments];

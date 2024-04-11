@@ -24,7 +24,7 @@ type AddCommentPayload = {
 
 export class CommentsAPI {
   static getForPost = async (payload: GetCommentsPayload) => {
-    const response = await axiosInstance.get<GetCommentsResponse>(`${prefix}/`, { params: { perPage: 5, ...payload }});
+    const response = await axiosInstance.post<GetCommentsResponse>(`${prefix}/`, { perPage: 5, ...payload });
   
     return response;
   }

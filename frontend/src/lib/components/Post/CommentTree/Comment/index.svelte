@@ -7,6 +7,8 @@
   export let onDelete: (id: number) => void;
   export let showPost: boolean = false;
   export let showUser: boolean = true;
+  export let isExpanded: boolean = false;
+  export let onExpand: (() => void) | undefined = undefined;
 
   let id: number | null;
   authStore.subscribe(newState => id = newState.id)
@@ -32,4 +34,7 @@
   </div>
   <small>{new Date(data.created_at).toLocaleString()}</small>
   <p>{data.text}</p>
+  {#if onExpand && data.children_comment_amount > 0}
+    <button on:click={onExpand}>{data.children_comment_amount} {data.children_comment_amount > 1 ? 'Replies' : 'Reply'} ({isExpanded ? 'Close' : 'Open'})</button>
+  {/if}
 </div>

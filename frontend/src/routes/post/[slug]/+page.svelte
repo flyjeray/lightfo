@@ -1,6 +1,6 @@
 <script lang="ts">
 	import { API } from '$lib/api/index.js';
-	import CommentCard from '$lib/components/Post/Comment/index.svelte';
+	import CommentTree from '$lib/components/Post/CommentTree/index.svelte';
   import PostContent from '$lib/components/Post/Content/index.svelte';
   import CreateComment from '$lib/components/Post/CreateComment/index.svelte';
 	import type { Comment } from '$lib/models/Comments.js';
@@ -8,6 +8,11 @@
 	import type { Post } from '$lib/models/Post.js';
 	import { onMount } from 'svelte';
   import authStore from '$lib/store/authStore';
+
+  type CommentWithChildren = {
+    data: Comment;
+    children: Comment[];
+  }
 
   let localToken: string | null = null;
 	authStore.subscribe(data => localToken = data.token)
@@ -17,37 +22,13 @@
   let postData: Post | null = null;
 
   let comments: Comment[] = [];
-  let commentPage = 1;
-  let commentPagination: Pagination | null = null;
-
-  const getComments = async () => {
-    const response = await API.comments.getForPost({
-      post_id: parseInt(data.slug), 
-      page: commentPage
-    });
-
-    if (response.status === 200) {
-      comments = [...comments, ...response.data.comments];
-      commentPagination = response.data.pagination;
-    }
-  }
-
-  const nextPage = () => {
-    commentPage++; 
-    getComments()
-  }
 
   const fetchData = async () => {
     const response = await API.posts.getSingle(parseInt(data.slug))
 
     if (response.status === 200) {
       postData = response.data;
-      getComments();
     }
-  }
-
-  const onCommentDeleted = (id: number) => {
-    comments = comments.filter(c => c.id !== id)
   }
 
   onMount(() => {
@@ -65,11 +46,6 @@
         addComment={newComment => comments = [newComment, ...comments]}
       />
     {/if}
-    {#each comments as comment}
-      <CommentCard data={comment} onDelete={onCommentDeleted} />
-    {/each}
-    {#if commentPagination && !commentPagination.is_last}
-		  <button class="rounded-xl" on:click={nextPage}>Load more</button>
-    {/if}
+    <CommentTree postID={parseInt(data.slug)} depth={1} parentID={undefined} />
   {/if}
 </section>

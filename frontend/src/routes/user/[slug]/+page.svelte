@@ -7,7 +7,7 @@
 	import type { Comment } from '$lib/models/Comments';
 
 	import PostCard from '$lib/components/Feed/Post/index.svelte';
-	import CommentCard from '$lib/components/Post/Comment/index.svelte';
+	import CommentCard from '$lib/components/Post/CommentTree/Comment/index.svelte';
 
   export let data;
 

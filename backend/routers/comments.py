@@ -22,12 +22,13 @@ class Comment(BaseModel):
     post: int
     parent_comment: Optional[int]
     post_title: str
+    children_comment_amount: int
     created_at: datetime
     user: User
 
 class PostCommentPayload(BaseModel):
     post_id: int
-    parent_comment_id: Optional[int]
+    parent_comment_id: Optional[int] = None
     text: str
 
 @router.post('/add', status_code=201, response_model=Comment, description="Post a comment to a post")
@@ -42,6 +43,11 @@ def post_comment(db: db_dependency, payload: PostCommentPayload, creds: HTTPAuth
         db.add(comment)
         post.comment_amount = post.comment_amount + 1
         user.comment_amount = user.comment_amount + 1
+        if payload.parent_comment_id:
+            parent_comment = db.query(models.Comment).where(models.Comment.id == payload.parent_comment_id).first()
+            if parent_comment:
+                parent_comment.children_comment_amount = parent_comment.children_comment_amount + 1
+                db.commit()
         db.commit()
         db.flush()
         return {
@@ -51,6 +57,7 @@ def post_comment(db: db_dependency, payload: PostCommentPayload, creds: HTTPAuth
             'post': payload.post_id,
             'post_title': post.title,
             'parent_comment': payload.parent_comment_id,
+            'children_comment_amount': comment.children_comment_amount,
             'user': {
                 'id': user.id,
                 'username': user.username
@@ -83,13 +90,13 @@ def delete_comment(db: db_dependency, comment_id: int, creds: HTTPAuthorizationC
 
 class GetCommentsPayload(BaseModel):
     post_id: int
-    parent_comment_id: Optional[int]
+    parent_comment_id: Optional[int] = None
 
 class GetCommentsResponse(BaseModel):
     comments: List[Comment]
     pagination: models.Pagination
 
-@router.get('/', status_code=200, response_model=GetCommentsResponse, description="Get comments for specific post")
+@router.post('/', status_code=200, response_model=GetCommentsResponse, description="Get comments for specific post")
 def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
     post = db.query(models.Post).where(models.Post.id == payload.post_id).first()
 
@@ -99,7 +106,7 @@ def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: 
     if payload.parent_comment_id:
         query = db.query(models.Comment).where(models.Comment.parent_comment == payload.parent_comment_id)
     else:
-        query = db.query(models.Comment).where(models.Comment.post == payload.post_id)
+        query = db.query(models.Comment).where(models.Comment.post == payload.post_id).where(models.Comment.parent_comment == None)
 
     total_comments = query.with_entities(func.count(models.Comment.id)).scalar()
     total_pages = (total_comments + per_page - 1) // per_page
@@ -120,6 +127,7 @@ def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: 
         'post': c.post,
         'post_title': post.title,
         'parent_comment': c.parent_comment,
+        'children_comment_amount': c.children_comment_amount,
         'created_at': c.created_at,
         'user': users[c.user] if c.user in users else get_user(c.user),
     } for c in comments]
@@ -161,6 +169,7 @@ def get_comments_for_user(db: db_dependency, user_id: int, page: int = Query(1, 
         'post': c.post,
         'post_title': posts[c.post] if c.post in posts else get_post(c.post),
         'parent_comment': c.parent_comment,
+        'children_comment_amount': c.children_comment_amount,
         'created_at': c.created_at,
         'user': user,
     } for c in comments]

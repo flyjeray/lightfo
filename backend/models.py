@@ -27,6 +27,7 @@ class Comment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     post = Column(Integer, ForeignKey(Post.id, ondelete="CASCADE"), index=True)
     parent_comment = Column(Integer, ForeignKey('comments.id', ondelete="CASCADE"), index=True, nullable=True)
+    children_comment_amount = Column(Integer, index=True, default='0')
     user = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"), index=True)
     
 class Pagination(BaseModel):

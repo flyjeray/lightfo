@@ -70,7 +70,7 @@
 	});
 </script>
 
-<section class="w-1/2 mx-auto flex flex-col gap-6">
+<section class="tablet:w-1/2 phone:w-full mx-auto flex flex-col gap-6">
   {#if username}
     <h1 class="text-4xl mb-6 font-bold">{username}</h1>
 		<div class="flex flex-row gap-2">

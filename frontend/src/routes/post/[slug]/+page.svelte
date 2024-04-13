@@ -36,7 +36,7 @@
   })
 </script>
 
-<section class="w-1/2 mx-auto flex flex-col gap-6">
+<section class="tablet:w-1/2 phone:w-full mx-auto flex flex-col gap-6">
   {#if postData}
     <PostContent data={postData} />
     <p>{postData.comment_amount} {postData.comment_amount != 1 ? 'comments' : 'comment'}</p>

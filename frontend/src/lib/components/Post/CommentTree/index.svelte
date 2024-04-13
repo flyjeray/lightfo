@@ -41,21 +41,31 @@
   })
 </script>
 
-<div style={`padding-left: ${(depth - 1) * 8}px`}>
-  {#each comments as comment}
-    <div class="mb-2">
-      <CommentCard 
-        data={comment} 
-        onDelete={onCommentDeleted}
-        isExpanded={expanded[comment.id]}
-        onExpand={() => expanded[comment.id] = (expanded[comment.id] == undefined ? true : !expanded[comment.id])}
-      />
-    </div>
-    {#if expanded[comment.id]}
-      <svelte:self postID={postID} parentID={comment.id} depth={depth + 1} />
-    {/if}
+<div class="flex flex-row">
+  {#each {length: depth > 0 ? 1 : 0} as _, i}
+    <div class="w-4 border-l border-slate-300"></div>
   {/each}
-  {#if commentPagination && !commentPagination.is_last}
-    <button class="rounded-xl" on:click={nextPage}>Load more</button>
-  {/if}
+  <div class="flex-1">
+    {#each comments as comment}
+      <div class="mb-2">
+        <CommentCard 
+          data={comment} 
+          onDelete={onCommentDeleted}
+          isExpanded={expanded[comment.id]}
+          onExpand={() => expanded[comment.id] = (expanded[comment.id] == undefined ? true : !expanded[comment.id])}
+        />
+      </div>
+      {#if expanded[comment.id]}
+        <svelte:self postID={postID} parentID={comment.id} depth={depth + 1} />
+      {/if}
+    {/each}
+    {#if commentPagination && !commentPagination.is_last}
+      <button 
+        class="w-fit border-slate-300 p-2 rounded-md my-4" 
+        on:click={nextPage}
+      >
+        <p class="text-sm">Load more</p>
+      </button>
+    {/if}
+  </div>
 </div>

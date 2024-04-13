@@ -15,7 +15,7 @@
 </script>
 
 <Header />
-<div class="p-6 pt-36 bg-slate-300 min-h-screen">
+<div class="p-6 tablet:pt-36 phone:pt-48 min-h-screen">
 	<slot />
 </div>
 

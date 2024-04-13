@@ -35,6 +35,8 @@
   <small>{new Date(data.created_at).toLocaleString()}</small>
   <p>{data.text}</p>
   {#if onExpand && data.children_comment_amount > 0}
-    <button on:click={onExpand}>{data.children_comment_amount} {data.children_comment_amount > 1 ? 'Replies' : 'Reply'} ({isExpanded ? 'Close' : 'Open'})</button>
+    <button on:click={onExpand} class="w-fit border-slate-300 p-2 rounded-md">
+      <p class="text-sm">{data.children_comment_amount} {data.children_comment_amount > 1 ? 'Replies' : 'Reply'} ({isExpanded ? 'Close' : 'Open'})</p>
+    </button>
   {/if}
 </div>

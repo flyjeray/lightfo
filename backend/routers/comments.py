@@ -91,13 +91,18 @@ def delete_comment(db: db_dependency, comment_id: int, creds: HTTPAuthorizationC
 class GetCommentsPayload(BaseModel):
     post_id: int
     parent_comment_id: Optional[int] = None
+    page: int
+    per_page: int
 
 class GetCommentsResponse(BaseModel):
     comments: List[Comment]
     pagination: models.Pagination
 
 @router.post('/', status_code=200, response_model=GetCommentsResponse, description="Get comments for specific post")
-def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: int = Query(1, ge=1), per_page: int = Query(5, ge=1, le=100)):
+def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload):
+    if payload.page < 1 or payload.per_page < 1:
+        raise HTTPException(status_code=422, detail="Invalid page parameters")
+
     post = db.query(models.Post).where(models.Post.id == payload.post_id).first()
 
     if post is None:
@@ -109,10 +114,10 @@ def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: 
         query = db.query(models.Comment).where(models.Comment.post == payload.post_id).where(models.Comment.parent_comment == None)
 
     total_comments = query.with_entities(func.count(models.Comment.id)).scalar()
-    total_pages = (total_comments + per_page - 1) // per_page
-    offset = (page - 1) * per_page
+    total_pages = (total_comments + payload.per_page - 1) // payload.per_page
+    offset = (payload.page - 1) * payload.per_page
 
-    comments = query.order_by(desc(models.Comment.created_at)).offset(offset).limit(per_page).all()
+    comments = query.order_by(desc(models.Comment.created_at)).offset(offset).limit(payload.per_page).all()
 
     users = {}
 
@@ -135,7 +140,7 @@ def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload, page: 
     return {
         'comments': filled,
         "pagination": {
-            "is_last": page >= total_pages,
+            "is_last": payload.page >= total_pages,
             "total_pages": total_pages,
             "total_entries": total_comments,
         }

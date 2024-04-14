@@ -69,9 +69,9 @@
 </script>
 
 <div class="flex flex-row">
-  {#each {length: depth > 0 ? 1 : 0} as _, i}
+  {#if depth > 0}
     <div class="w-4 border-l border-slate-300"></div>
-  {/each}
+  {/if}
   <div class="flex-1">
     {#each comments as comment}
       <div class="mb-2">

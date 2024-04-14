@@ -46,6 +46,6 @@
         addComment={newComment => comments = [newComment, ...comments]}
       />
     {/if}
-    <CommentTree postID={parseInt(data.slug)} depth={1} parentID={undefined} />
+    <CommentTree postID={parseInt(data.slug)} depth={0} parentID={undefined} />
   {/if}
 </section>

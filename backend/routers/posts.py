@@ -54,7 +54,7 @@ def create_post(data: CreatePostPayload, db: db_dependency, creds: HTTPAuthoriza
             'text': new_post.text,
             'created_at': new_post.created_at,
             'owner': new_post.owner,
-            'comment_amount': new_post.comment_amount,
+            'comment_amount': 0,
             'owner_name': user.username
         }
     
@@ -97,6 +97,10 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
             return user.username
         else:
             return 'Unknown'
+    
+    def get_comments(post_id):
+        children = db.query(models.Comment).where(models.Comment.post == post_id).with_entities(func.count(models.Comment.id)).scalar()
+        return children
 
     named_posts = [{    
         'id': p.id,
@@ -104,7 +108,7 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
         'text': p.text,
         'created_at': p.created_at,
         'owner': p.owner,
-        'comment_amount': p.comment_amount,
+        'comment_amount': get_comments(p.id),
         'owner_name': names[p.owner] if p.owner in names else get_user_name(p.owner)
     } for p in posts]
 
@@ -121,13 +125,14 @@ def get_posts(db: db_dependency, page: int = Query(1, ge=1), per_page: int = Que
 def get_post(db: db_dependency, id: int):
     post = db.query(models.Post).where(models.Post.id == id).first()
     user = db.query(models.User).where(models.User.id == post.owner).first()
+    children_amount = db.query(models.Comment).where(models.Comment.post == id).with_entities(func.count(models.Comment.id)).scalar()
     return {    
         'id': post.id,
         'title': post.title,
         'text': post.text,
         'created_at': post.created_at,
         'owner': post.owner,
-        'comment_amount': post.comment_amount,
+        'comment_amount': children_amount,
         'owner_name': user.username
     }
 

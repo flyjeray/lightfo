@@ -9,7 +9,6 @@ class User(Base):
     username = Column(String, index=True)
     hashed_pw = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
-    comment_amount = Column(Integer, index=True, default='0')
 
 class Post(Base):
     __tablename__ = "posts"
@@ -18,7 +17,6 @@ class Post(Base):
     text = Column(String, index=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     owner = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"), index=True)
-    comment_amount = Column(Integer, index=True, default='0')
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -27,7 +25,6 @@ class Comment(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     post = Column(Integer, ForeignKey(Post.id, ondelete="CASCADE"), index=True)
     parent_comment = Column(Integer, ForeignKey('comments.id', ondelete="CASCADE"), index=True, nullable=True)
-    children_comment_amount = Column(Integer, index=True, default='0')
     user = Column(Integer, ForeignKey(User.id, ondelete="CASCADE"), index=True)
     
 class Pagination(BaseModel):

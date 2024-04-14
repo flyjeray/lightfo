@@ -41,13 +41,6 @@ def post_comment(db: db_dependency, payload: PostCommentPayload, creds: HTTPAuth
     if post and user:
         comment = models.Comment(text=payload.text, post=payload.post_id, user=user.id, parent_comment=payload.parent_comment_id)
         db.add(comment)
-        post.comment_amount = post.comment_amount + 1
-        user.comment_amount = user.comment_amount + 1
-        if payload.parent_comment_id:
-            parent_comment = db.query(models.Comment).where(models.Comment.id == payload.parent_comment_id).first()
-            if parent_comment:
-                parent_comment.children_comment_amount = parent_comment.children_comment_amount + 1
-                db.commit()
         db.commit()
         db.flush()
         return {
@@ -57,7 +50,7 @@ def post_comment(db: db_dependency, payload: PostCommentPayload, creds: HTTPAuth
             'post': payload.post_id,
             'post_title': post.title,
             'parent_comment': payload.parent_comment_id,
-            'children_comment_amount': comment.children_comment_amount,
+            'children_comment_amount': 0,
             'user': {
                 'id': user.id,
                 'username': user.username
@@ -77,12 +70,6 @@ def delete_comment(db: db_dependency, comment_id: int, creds: HTTPAuthorizationC
     elif str(comment.user) != token_data.id:
         raise HTTPException(status_code=401, detail="You have no access to modify this post")
     else:
-        post = db.query(models.Post).where(models.Post.id == comment.post).first()
-        user = db.query(models.User).where(models.User.id == comment.user).first()
-        if post:
-            post.comment_amount = post.comment_amount - 1
-        if user:
-            user.comment_amount = user.comment_amount - 1
         db.delete(comment)
         db.commit()
 
@@ -125,6 +112,10 @@ def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload):
         user = db.query(models.User).where(models.User.id == user_id).first()
         users[user_id] = user 
         return user  
+    
+    def get_children(comment_id):
+        children = db.query(models.Comment).where(models.Comment.parent_comment == comment_id).with_entities(func.count(models.Comment.id)).scalar()
+        return children
 
     filled = [{    
         'id': c.id,
@@ -132,7 +123,7 @@ def get_comments_for_post(db: db_dependency, payload: GetCommentsPayload):
         'post': c.post,
         'post_title': post.title,
         'parent_comment': c.parent_comment,
-        'children_comment_amount': c.children_comment_amount,
+        'children_comment_amount': get_children(c.id),
         'created_at': c.created_at,
         'user': users[c.user] if c.user in users else get_user(c.user),
     } for c in comments]
@@ -167,6 +158,10 @@ def get_comments_for_user(db: db_dependency, user_id: int, page: int = Query(1, 
         post = db.query(models.Post).where(models.Post.id == post_id).first()
         posts[post_id] = post.title
         return post.title  
+    
+    def get_children(comment_id):
+        children = db.query(models.Comment).where(models.Comment.parent_comment == comment_id).with_entities(func.count(models.Comment.id)).scalar()
+        return children
 
     filled = [{    
         'id': c.id,
@@ -174,7 +169,7 @@ def get_comments_for_user(db: db_dependency, user_id: int, page: int = Query(1, 
         'post': c.post,
         'post_title': posts[c.post] if c.post in posts else get_post(c.post),
         'parent_comment': c.parent_comment,
-        'children_comment_amount': c.children_comment_amount,
+        'children_comment_amount': get_children(c.id),
         'created_at': c.created_at,
         'user': user,
     } for c in comments]

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Query, Depends, HTTPException
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from database import db_dependency
+from dependencies import db_dependency
 from pydantic import BaseModel
 from sqlalchemy import func, desc
 from typing import List, Optional

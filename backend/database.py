@@ -20,14 +20,3 @@ engine = create_engine(DB)
 SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
 
 Base = declarative_base()
-
-Base.metadata.create_all(bind=engine)
-
-def get_database():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-db_dependency = Annotated[Session, Depends(get_database)]

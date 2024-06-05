@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from database import db_dependency
+from dependencies import db_dependency
 from pydantic import BaseModel
 import models
 

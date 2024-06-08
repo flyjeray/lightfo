@@ -47,6 +47,7 @@
         comments[i].children_comment_amount = comments[i].children_comment_amount + 1;
       }
       commentToReply = null;
+      expanded[data.parent_comment] = true;
     }
   }
 

@@ -4,7 +4,6 @@
   import PostContent from '$lib/components/Post/Content/index.svelte';
   import CreateComment from '$lib/components/Post/CreateComment/index.svelte';
 	import type { Comment } from '$lib/models/Comments.js';
-	import type { Pagination } from '$lib/models/Pagination.js';
 	import type { Post } from '$lib/models/Post.js';
 	import { onMount } from 'svelte';
   import authStore from '$lib/store/authStore';
@@ -31,6 +30,10 @@
     }
   }
 
+  const onCommentAdded = (newComment: Comment) => {
+    comments = [...comments, newComment];
+  }
+
   onMount(() => {
     fetchData()
   })
@@ -43,9 +46,14 @@
     {#if localToken}
       <CreateComment 
         postID={parseInt(data.slug)} 
-        addComment={newComment => comments = [newComment, ...comments]}
+        addComment={onCommentAdded}
       />
     {/if}
-    <CommentTree postID={parseInt(data.slug)} depth={0} parentID={undefined} />
+    <CommentTree 
+      postID={parseInt(data.slug)} 
+      depth={0} 
+      parentID={undefined}
+      passedAmountOfCommentsAsTrigger={comments.length}
+    />
   {/if}
 </section>
